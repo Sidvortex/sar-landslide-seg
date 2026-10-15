@@ -1,0 +1,36 @@
+# Bi-temporal change detection from your own GeoTIFF pairs (Sentinel-1 / NISAR SAR, or optical).
+#
+# Layout (export from Google Earth Engine / ASF, see README "Bring your own SAR pairs"):
+#   data/pairs/train/<scene_id>/pre.tif    C bands, before the event
+#   data/pairs/train/<scene_id>/post.tif   same C bands, same grid, after the event
+#   data/pairs/train/<scene_id>/mask.tif   1 band, 1 = changed (landslide/flood), 0 = not
+#   data/pairs/val/...                     same structure
+#
+# Input to the network = [pre, post, log-ratio(post/pre)] -> 3*C channels.
+
+data:
+  mode: pairs
+  root: data/pairs
+  sar: true            # true: inputs are linear backscatter -> converted to dB, log-ratio added
+  tile: 256
+  tiles_per_scene: 64  # random crops per scene per epoch
+  val_fraction: 0.0
+  stats_samples: 400
+
+model:
+  arch: Unet
+  encoder: resnet34
+  encoder_weights: imagenet
+
+train:
+  output_dir: outputs/sar-change-unet-r34
+  epochs: 40
+  batch_size: 16
+  lr: 3.0e-4
+  encoder_lr_mult: 0.3
+  freeze_encoder_epochs: 2
+  weight_decay: 1.0e-4
+  pos_weight: 5.0
+  num_workers: 2
+  seed: 42
+  threshold: 0.5

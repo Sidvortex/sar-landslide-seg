@@ -1,0 +1,28 @@
+# Landslide segmentation on Landslide4Sense (Sentinel-2 B1-B12 + slope + DEM, 128x128).
+# Fine-tunes an ImageNet-pretrained encoder whose first conv is adapted to 14 bands.
+
+data:
+  mode: landslide4sense
+  hf_repo: ibm-nasa-geospatial/Landslide4sense
+  root: data/landslide4sense          # downloaded here
+  bands: all                          # or a list of 0-based band indices, e.g. [1,2,3,7,12,13]
+  val_fraction: 0.0                   # 0 = use the official validation split
+  stats_samples: 600                  # patches used to compute per-band mean/std
+
+model:
+  arch: Unet                          # Unet | UnetPlusPlus | FPN | DeepLabV3Plus | Segformer
+  encoder: resnet34
+  encoder_weights: imagenet
+
+train:
+  output_dir: outputs/l4s-unet-r34
+  epochs: 40
+  batch_size: 32
+  lr: 3.0e-4
+  encoder_lr_mult: 0.3                # pretrained encoder learns slower than the decoder
+  freeze_encoder_epochs: 2            # warm up the decoder first
+  weight_decay: 1.0e-4
+  pos_weight: 3.0                     # landslide pixels are rare
+  num_workers: 2
+  seed: 42
+  threshold: 0.5

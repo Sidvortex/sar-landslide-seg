@@ -1,0 +1,9 @@
+outputs/
+checkpoints/
+data/
+results/*.png
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.zip
+wandb/
